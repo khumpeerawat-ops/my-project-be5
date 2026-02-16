@@ -21,8 +21,7 @@ export const register = async (req, res) => {
     // 3. บันทึกลง PostgreSQL
     const sql = `
       INSERT INTO users (username, password, first_name, last_name)
-      VALUES ($1, $2, $3, $4)
-      RETURNING id, username;
+      VALUES ($1, $2, $3, $4);
     `;
 
     await query(sql, [username, hashedPassword, firstName, lastName]);

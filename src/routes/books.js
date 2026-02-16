@@ -5,7 +5,7 @@ import {
   updateBook,
   deleteBook,
 } from "../controllers/bookController.js";
-import { protect } from "../middlewares/protect.js";
+import { protect } from "../middlewares/protect.js"; //ตรวจสอบ Token ก่อนทุก routes
 
 const bookRouter = Router();
 

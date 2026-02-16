@@ -1,0 +1,151 @@
+openapi: 3.0.0
+info:
+  title: Book Collection API 📚
+  description: API สำหรับจัดการคอลเลกชันหนังสือส่วนบุคคล (Project BE5)
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:4000
+    description: Local Development Server
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    Book:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        author: { type: string }
+        description: { type: string }
+        user_id: { type: integer }
+
+paths:
+  # --- Authentication ---
+  /auth/register:
+    post:
+      summary: สมัครสมาชิกใหม่
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [username, password]
+              properties:
+                username: { type: string, example: "arm_chief" }
+                password: { type: string, example: "pass1234" }
+                firstName: { type: string, example: "Arm" }
+                lastName: { type: string, example: "Lalita" }
+      responses:
+        201:
+          description: สร้างบัญชีสำเร็จ
+        400:
+          description: ข้อมูลไม่ครบหรือ Username ซ้ำ
+
+  /auth/login:
+    post:
+      summary: เข้าสู่ระบบ
+      tags: [Auth]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                username: { type: string }
+                password: { type: string }
+      responses:
+        200:
+          description: Login สำเร็จ พร้อมคืนค่า Token
+        401:
+          description: Username หรือ Password ผิด
+
+  # --- Books Management ---
+  /books:
+    get:
+      summary: ดึงรายการหนังสือทั้งหมดของ User ที่ Login อยู่
+      tags: [Books]
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: รายการหนังสือ
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items: { $ref: "#/components/schemas/Book" }
+        401:
+          description: ไม่ได้รับอนุญาต (Token ไม่ถูกต้อง)
+
+    post:
+      summary: เพิ่มหนังสือเล่มใหม่
+      tags: [Books]
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [title, author]
+              properties:
+                title: { type: string }
+                author: { type: string }
+                description: { type: string }
+      responses:
+        201:
+          description: เพิ่มหนังสือสำเร็จ
+
+  /books/{id}:
+    put:
+      summary: แก้ไขข้อมูลหนังสือ
+      tags: [Books]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                title: { type: string }
+                author: { type: string }
+                description: { type: string }
+      responses:
+        200:
+          description: แก้ไขสำเร็จ
+        404:
+          description: ไม่พบหนังสือหรือไม่มีสิทธิ์แก้ไข
+
+    delete:
+      summary: ลบหนังสือ
+      tags: [Books]
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema: { type: integer }
+      responses:
+        200:
+          description: ลบสำเร็จ
+        404:
+          description: ไม่พบหนังสือหรือไม่มีสิทธิ์ลบ
